@@ -1,41 +1,30 @@
 package io.exercises;
 
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
-public class Day1 implements Day 
+public class Day1 implements Day
 {
-    record Counter(int increases, int prevValue) 
+    @Override
+    public long part1(final String input)
     {
-        Counter count(final int value)
-        {
-            return new Counter(increases + 1, value);
-        }
-
-        Counter skip(final int value)
-        {
-            return new Counter(increases, value);
-        }
+        return countIncreasesWindowed(input, 1);
     }
 
     @Override
-    public int part1(final String input) 
+    public long part2(final String input)
     {
-        return countIncreases(input.lines().map(Integer::parseInt));
+        return countIncreasesWindowed(input, 3);
     }
 
-    @Override
-    public int part2(final String input) 
+    private long countIncreasesWindowed(final String input, final int windowSize)
     {
-        final var depths = input.lines().mapToInt(Integer::parseInt).toArray();
-        return countIncreases(IntStream.range(0, depths.length - 2)
-                .mapToObj(i -> depths[i] + depths[i + 1] + depths[i + 2]));
+        final var depths = input.lines()
+                .mapToInt(Integer::parseInt)
+                .toArray();
+
+        return IntStream.range(0, depths.length - windowSize)
+                .filter(i -> depths[i] < depths[i + windowSize])
+                .count();
     }
 
-    private int countIncreases(final Stream<Integer> stream)
-    {
-        return stream.reduce(new Counter(0, Integer.MAX_VALUE), 
-                (counter, value) -> value > counter.prevValue() ? counter.count(value) : counter.skip(value), 
-                (counter, __) -> counter).increases();
-    }
 }

@@ -5,26 +5,37 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
-public class Day1Test extends DayTest 
+public class Day1Test extends DayTest
 {
-    private final String smallData = "199\n200\n208\n210\n200\n207\n240\n269\n260\n263";
+    private final String smallData = """
+            199
+            200
+            208
+            210
+            200
+            207
+            240
+            269
+            260
+            263
+            """;
     private final String bigData;
 
-    public Day1Test() throws IOException 
+    public Day1Test() throws IOException
     {
         super(new Day1());
-        this.bigData = Files.readString(Path.of("resources/input/day1.txt"));
+        bigData = Files.readString(Path.of("resources/input/day1.txt"));
     }
 
     @Override
-    Map<Integer, String> testCasesPart1() throws IOException
+    Map<Long, String> testCasesPart1()
     {
-        return Map.of(7, smallData, 1482, bigData);
+        return Map.of(7L, smallData, 1482L, bigData);
     }
 
     @Override
-    Map<Integer, String> testCasesPart2() throws IOException
+    Map<Long, String> testCasesPart2()
     {
-        return Map.of(5, smallData, 1518, bigData);
+        return Map.of(5L, smallData, 1518L, bigData);
     }
 }
