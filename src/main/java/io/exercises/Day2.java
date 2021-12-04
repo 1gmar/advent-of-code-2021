@@ -39,7 +39,7 @@ public class Day2 implements Day
             }
         }
 
-        return runCommands(input, new Position2D(0, 0)).checkSum();
+        return getFinalPosition(input, new Position2D(0, 0)).checkSum();
     }
 
     @Override
@@ -59,10 +59,10 @@ public class Day2 implements Day
             }
         }
 
-        return runCommands(input, new Position3D(0, 0, 0)).checkSum();
+        return getFinalPosition(input, new Position3D(0, 0, 0)).checkSum();
     }
 
-    private Position runCommands(final String input, final Position start)
+    private Position getFinalPosition(final String input, final Position start)
     {
         return input.lines()
                 .map(line -> line.split(" "))

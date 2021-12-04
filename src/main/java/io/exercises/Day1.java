@@ -26,5 +26,4 @@ public class Day1 implements Day
                 .filter(i -> depths[i] < depths[i + windowSize])
                 .count();
     }
-
 }
