@@ -1,9 +1,7 @@
 package io.exercises;
 
-import static java.lang.Integer.parseInt;
 import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.joining;
+import static java.util.stream.IntStream.generate;
 import static java.util.stream.IntStream.range;
 
 import java.util.function.BiFunction;
@@ -27,12 +25,14 @@ public class Day3 implements Day
     public long part1(final String input)
     {
         final var diagnosticReport = getDiagnosticReport(input);
-        final var gammaRate = stream(transpose(diagnosticReport))
+        final int gammaRate = toDecimal(stream(transpose(diagnosticReport))
                 .map(row -> stream(row).summaryStatistics())
-                .map(stats -> stats.getCount() - stats.getSum() > stats.getSum() ? "0" : "1")
-                .collect(collectingAndThen(joining(), bitString -> parseInt(bitString, 2)));
-
-        final var epsilonRate = ~gammaRate & parseInt("1".repeat(diagnosticReport[0].length), 2);
+                .mapToInt(stats -> stats.getCount() - stats.getSum() > stats.getSum() ? 0 : 1)
+                .toArray());
+        final int bitMask = toDecimal(generate(() -> 1)
+                .limit(diagnosticReport[0].length)
+                .toArray());
+        final int epsilonRate = ~gammaRate & bitMask;
 
         return gammaRate * epsilonRate;
     }
@@ -43,11 +43,15 @@ public class Day3 implements Day
         final var diagnosticReport = getDiagnosticReport(input);
         final BiFunction<Long, Long, Integer> o2GenBitCriteria = (nrOfZeros, nrOfOnes) -> nrOfZeros > nrOfOnes ? 0
                 : nrOfZeros < nrOfOnes ? 1 : 1;
-
-        final var o2GenRating = findLifeSupportRating(diagnosticReport, o2GenBitCriteria);
-        final var co2ScrubRating = findLifeSupportRating(diagnosticReport, o2GenBitCriteria.andThen(bit -> bit ^ 1));
+        final int o2GenRating = findLifeSupportRating(diagnosticReport, o2GenBitCriteria);
+        final int co2ScrubRating = findLifeSupportRating(diagnosticReport, o2GenBitCriteria.andThen(bit -> bit ^ 1));
 
         return o2GenRating * co2ScrubRating;
+    }
+
+    private int toDecimal(final int[] bits)
+    {
+        return range(0, bits.length).reduce(0, (sum, pos) -> sum + (bits[bits.length - pos - 1] << pos));
     }
 
     private int[][] getDiagnosticReport(final String input)
@@ -69,16 +73,15 @@ public class Day3 implements Day
         return Stream.iterate(new ReportState(diagnosticReport, 0), state -> filterByBitCriteria(state, bitCriteria))
                 .filter(state -> state.matrix().length == 1)
                 .findFirst()
-                .map(state -> stream(state.matrix()[0]).mapToObj(String::valueOf).collect(joining()))
-                .map(bitString -> parseInt(bitString, 2))
+                .map(state -> toDecimal(state.matrix()[0]))
                 .orElseThrow();
     }
 
     private ReportState filterByBitCriteria(final ReportState state, final BiFunction<Long, Long, Integer> bitCriteria)
     {
         final var stats = stream(transpose(state.matrix())[state.bitPos()]).summaryStatistics();
-        final var nrOfZeros = stats.getCount() - stats.getSum();
-        final var nrOfOnes = stats.getSum();
+        final long nrOfZeros = stats.getCount() - stats.getSum();
+        final long nrOfOnes = stats.getSum();
 
         return state.filter(bitCriteria.apply(nrOfZeros, nrOfOnes));
     }
