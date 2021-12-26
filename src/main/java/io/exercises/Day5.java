@@ -11,6 +11,8 @@ public class Day5 implements Day
 {
     record Point(int x, int y) implements Comparable<Point>
     {
+        static final Comparator<Point> COMPARATOR = Comparator.comparingInt(Point::x).thenComparingInt(Point::y);
+
         Point move(final int dx, final int dy)
         {
             return new Point(x + dx, y + dy);
@@ -19,7 +21,7 @@ public class Day5 implements Day
         @Override
         public int compareTo(final Point point)
         {
-            return Comparator.comparingInt(Point::x).thenComparingInt(Point::y).compare(this, point);
+            return COMPARATOR.compare(this, point);
         }
     }
 
