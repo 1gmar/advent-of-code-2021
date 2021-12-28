@@ -2,85 +2,77 @@ package io.exercises;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.stream.IntStream;
 
 public class Day6 implements Day
 {
-    record GenerationCounter(long count, List<Integer> birthDays)
+    record GenerationCount(long count, int[] birthDays)
     {}
 
-    record FishState(int age, int startDay)
+    record Fish(int age, int startDay)
     {}
 
     @Override
     public long part1(final String input)
     {
-        final var memo = new HashMap<FishState, Long>();
-
-        return parseInput(input)
-                .mapToLong(age -> 1 + countAllDescendantsIfAbsent(age, 0, 80, memo))
-                .sum();
+        return countAllDescendantsForPeriod(input, 80);
     }
 
     @Override
     public long part2(final String input)
     {
-        final var memo = new HashMap<FishState, Long>();
+        return countAllDescendantsForPeriod(input, 256);
+    }
 
-        return parseInput(input)
-                .mapToLong(age -> 1 + countAllDescendantsIfAbsent(age, 0, 256, memo))
+    private long countAllDescendantsForPeriod(final String input, final int period)
+    {
+        final var cache = new HashMap<Fish, Long>();
+
+        return input.lines()
+                .map(line -> line.split(","))
+                .flatMapToInt(digits -> Arrays.stream(digits).mapToInt(Integer::parseInt))
+                .mapToLong(age -> 1 + countAllDescendantsIfAbsent(new Fish(age, 0), period, cache))
                 .sum();
     }
 
-    private Stream<Integer> parseInput(final String input)
+    private long countAllDescendantsIfAbsent(final Fish fish, final int period, final Map<Fish, Long> cache)
     {
-        return input.lines()
-                .map(line -> line.split(","))
-                .flatMap(digits -> Arrays.stream(digits).map(Integer::parseInt));
-    }
-
-    private long countAllDescendantsIfAbsent(final int age, final int startDay, final int period,
-            final Map<FishState, Long> cache)
-    {
-        final var state = new FishState(age, startDay);
-
-        return Optional.of(state)
+        return Optional.of(fish)
                 .map(cache::get)
-                .orElseGet(() -> countAllDescendantsFor(period, cache, state));
+                .orElseGet(() -> countAllDescendantsFor(fish, period, cache));
     }
 
-    private Long countAllDescendantsFor(final int period, final Map<FishState, Long> cache, final FishState state)
+    private long countAllDescendantsFor(final Fish fish, final int period, final Map<Fish, Long> cache)
     {
-        final var counter = countDescendants(state.age, state.startDay, period);
+        final var genCount = countDescendants(fish, period);
 
-        if (counter.birthDays.isEmpty())
+        if (genCount.birthDays.length == 0)
         {
-            cache.putIfAbsent(state, counter.count);
+            cache.putIfAbsent(fish, genCount.count);
 
-            return counter.count;
+            return genCount.count;
         }
         else
         {
-            final long count = counter.count + counter.birthDays.stream()
-                    .mapToLong(day -> countAllDescendantsIfAbsent(6, day, period, cache))
+            final long totalCount = genCount.count + Arrays.stream(genCount.birthDays)
+                    .mapToLong(day -> countAllDescendantsIfAbsent(new Fish(6, day), period, cache))
                     .sum();
 
-            cache.putIfAbsent(state, count);
+            cache.putIfAbsent(fish, totalCount);
 
-            return count;
+            return totalCount;
         }
     }
 
-    private GenerationCounter countDescendants(final int age, final int startDay, final int period)
+    private GenerationCount countDescendants(final Fish fish, final int period)
     {
-        final int relativePeriod = period - startDay;
-        final int extraFish = startDay == 0 && relativePeriod % 7 > age ? 1 : 0;
+        final int relativePeriod = period - fish.startDay;
+        final int extraFish = fish.startDay == 0 && relativePeriod % 7 > fish.age ? 1 : 0;
         final long count = relativePeriod / 7 + extraFish;
-        final var birthDays = Stream.iterate(startDay + age + 3, day -> day + 7).limit(count).toList();
+        final int[] birthDays = IntStream.iterate(fish.startDay + fish.age + 3, day -> day + 7).limit(count).toArray();
 
-        return new GenerationCounter(count, birthDays);
+        return new GenerationCount(count, birthDays);
     }
 }
