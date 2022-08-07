@@ -47,23 +47,13 @@ public class Day6 implements Day
     private long countAllDescendantsFor(final Fish fish, final int period, final Map<Fish, Long> cache)
     {
         final var genCount = countDescendants(fish, period);
+        final long totalCount = genCount.count + Arrays.stream(genCount.birthDays)
+                .mapToLong(day -> countAllDescendantsIfAbsent(new Fish(6, day), period, cache))
+                .sum();
 
-        if (genCount.birthDays.length == 0)
-        {
-            cache.putIfAbsent(fish, genCount.count);
+        cache.put(fish, totalCount);
 
-            return genCount.count;
-        }
-        else
-        {
-            final long totalCount = genCount.count + Arrays.stream(genCount.birthDays)
-                    .mapToLong(day -> countAllDescendantsIfAbsent(new Fish(6, day), period, cache))
-                    .sum();
-
-            cache.putIfAbsent(fish, totalCount);
-
-            return totalCount;
-        }
+        return totalCount;
     }
 
     private GenerationCount countDescendants(final Fish fish, final int period)

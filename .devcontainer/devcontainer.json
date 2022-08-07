@@ -10,14 +10,14 @@
         }
     },
     "settings": {
-        "java.home": "/docker-java-home"
+        "java.jdt.ls.java.home": "/docker-java-home"
     },
     "extensions": [
-		"vscjava.vscode-java-pack",
-		"streetsidesoftware.code-spell-checker",
-		"mhutchie.git-graph",
-		"redhat.vscode-xml"
-	],
+        "vscjava.vscode-java-pack",
+        "streetsidesoftware.code-spell-checker",
+        "mhutchie.git-graph",
+        "redhat.vscode-xml"
+    ],
     "remoteUser": "vscode",
     "features": {
         "git": "os-provided"

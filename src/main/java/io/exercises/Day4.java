@@ -8,6 +8,8 @@ import static java.util.stream.IntStream.range;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 public class Day4 implements Day
@@ -19,6 +21,11 @@ public class Day4 implements Day
 
     record Cell(int number, CellStatus status)
     {
+        Cell(final int number)
+        {
+            this(number, UNMARKED);
+        }
+
         Cell mark()
         {
             return new Cell(number, MARKED);
@@ -71,23 +78,24 @@ public class Day4 implements Day
     @Override
     public long part1(final String input)
     {
-        final var bingoGame = parseBingoGame(input);
-
-        return Stream.iterate(bingoGame.drawNumber(), BingoGame::drawNumber)
-                .filter(this::hasWinner)
-                .findFirst()
-                .map(this::calculateFinalScore)
-                .orElseThrow();
+        return playTheGame(input, BingoGame::drawNumber, this::hasWinner);
     }
 
     @Override
     public long part2(final String input)
     {
+        return playTheGame(input,
+                game -> dismissWinnersUnlessLast(game.drawNumber()),
+                game -> game.boards().size() == 1 && hasWinner(game));
+    }
+
+    private long playTheGame(final String input, final UnaryOperator<BingoGame> gameStep,
+            final Predicate<BingoGame> endGame)
+    {
         final var bingoGame = parseBingoGame(input);
 
-        return Stream.iterate(bingoGame.drawNumber(), game -> dismissWinnersUnlessLast(game.drawNumber()))
-                .filter(game -> game.boards().size() == 1)
-                .filter(this::hasWinner)
+        return Stream.iterate(bingoGame.drawNumber(), gameStep)
+                .filter(endGame)
                 .findFirst()
                 .map(this::calculateFinalScore)
                 .orElseThrow();
@@ -118,7 +126,8 @@ public class Day4 implements Day
     private Cell[] parseBoardRow(final String line)
     {
         return stream(line.split("\s+"))
-                .map(numStr -> new Cell(Integer.parseInt(numStr), UNMARKED))
+                .map(Integer::parseInt)
+                .map(Cell::new)
                 .toArray(Cell[]::new);
     }
 
